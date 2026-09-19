@@ -45,43 +45,39 @@ int mprint(char*name_f,char*text,...)
 
   for(int i = 0;;i++)
   {
-    if(text[i] == '%')
+    if(text[i] == '%' && 
+    (text[i+1] == 'd' || text[i+1] == 's' || text[i+1] == 'c'))
     {
-      if(text[i+1] == 'd')
+      write(file,text+current_sym,i-current_sym);
+      
+      switch (text[i+1])
       {
-        write(file,text+current_sym,i-current_sym);
-        int_arg = va_arg(arg_p,int);
-        size_arg = 0;
-        move_to_char(int_arg,int_str,&size_arg);
-        write(file,int_str,size_arg);
-        count_sym += size_arg;
-        i++;
-        current_sym = i + 1;
-        continue;
+        case 'd':
+          size_arg = 0;
+          int_arg = va_arg(arg_p,int);
+          move_to_char(int_arg,int_str,&size_arg);
+          write(file,int_str,size_arg);
+          break;
+
+        case 's':
+          str_arg = va_arg(arg_p,char*);
+          size_arg = size(str_arg);
+          write(file,str_arg,size_arg);
+          break;
+
+        case 'c':
+          size_arg = 1;
+          char_arg = (char)va_arg(arg_p,int);
+          write(file,&char_arg,size_arg);
+          break;
       }
-      else if(text[i+1] == 's')
-      {
-        write(file,text+current_sym,i-current_sym);
-        str_arg = va_arg(arg_p,char*);
-        size_arg = size(str_arg);
-        write(file,str_arg,size_arg);
-        count_sym += size_arg;
-        i++;
-        current_sym = i + 1;
-        continue;
-      }
-      else if(text[i+1] == 'c')
-      {
-        write(file,text+current_sym,i-current_sym);
-        char_arg = va_arg(arg_p,char);
-        write(file,&char_arg,1);
-        count_sym++;
-        i++;
-        current_sym = i+1;
-        continue;
-      }
-      /*тут повинен формуватися current_sym після того як змінна виведеться*/
+
+      i++;
+      count_sym += size_arg;
+      current_sym = i + 1;
+      continue;
     }
+    
     count_sym++;
     if(!text[i])
     {
